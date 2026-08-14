@@ -15,9 +15,50 @@
 
 An **Advanced YouTube Engagement Analytics Platform** powered by **YouTube Data API v3**, designed to search any YouTube channel (by `@Handle`, URL, Channel ID, or Name) and automatically compute 5 core performance scores, 7x24 posting heatmaps, AI growth recommendations, dedicated Power BI & Tableau dashboards, and multi-format dataset exports (CSV, Excel `.xlsx`, PDF).
 
+## 📁 Project Directory Structure
+
+```text
+Social_Media_Engagement_Dashboard/
+├── .ipynb_checkpoints/
+│   └── 01_youtube_engagement_eda-checkpoint.ipynb
+├── assets/
+├── dashboard/
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── style.css
+│   │   │   └── styles.css
+│   │   └── js/
+│   │       ├── app.js
+│   │       └── dashboard.js
+│   ├── templates/
+│   │   └── index.html
+│   ├── app.py
+│   └── streamlit_app.py
+├── data/
+│   ├── raw/
+│   └── processed/
+├── notebooks/
+│   └── 01_youtube_engagement_eda.ipynb
+├── reports/
+├── screenshots/
+│   ├── screenshot_1.png
+│   ├── screenshot_2.png
+│   ├── screenshot_3.png
+│   └── screenshot_4.png
+├── src/
+│   ├── clean_youtube_data.py
+│   ├── youtube_api.py
+│   └── youtube_api_v3.py
+├── .env (Ignored for Security)
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
 ---
 
 ## 🌟 Key Features
+
 
 ### 1. 🔍 Universal YouTube Channel Search & Intelligence
 - Search any channel using `@Handle` (e.g., `@MrBeast`, `@mkbhd`), full URL (`youtube.com/@veritasium`), Channel ID, or Channel Name.
