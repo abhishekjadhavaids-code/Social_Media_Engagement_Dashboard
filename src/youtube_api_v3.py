@@ -7,11 +7,12 @@ import numpy as np
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (.env file is ignored by git for security)
 load_dotenv()
 load_dotenv('c:/MLA/.env')
 
-API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY_V3") or "AIzaSyAhK789J-Eckd2HOeHr6quCsp8XoeBfCtY"
+API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY_V3")
+
 BASE_URL = "https://www.googleapis.com/youtube/v3"
 
 CATEGORY_MAP = {
