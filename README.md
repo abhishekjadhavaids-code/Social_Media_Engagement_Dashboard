@@ -4,6 +4,9 @@
 
 ![Channel Analytics Overview](screenshots/screenshot_2.png)
 
+![Channel Scores & Radar Diagram](screenshots/screenshot_3.png)
+
+
 
 
 
