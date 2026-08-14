@@ -2,7 +2,10 @@
 
 ![Home Page Preview](screenshots/screenshot_1.png)
 
-![Dashboard Overview](screenshots/dashboard_preview.png)
+![Channel Analytics Overview](screenshots/screenshot_2.png)
+
+![Dashboard Metrics Studio](screenshots/dashboard_preview.png)
+
 
 
 An **Advanced YouTube Engagement Analytics Platform** powered by **YouTube Data API v3**, designed to search any YouTube channel (by `@Handle`, URL, Channel ID, or Name) and automatically compute 5 core performance scores, 7x24 posting heatmaps, AI growth recommendations, dedicated Power BI & Tableau dashboards, and multi-format dataset exports (CSV, Excel `.xlsx`, PDF).
