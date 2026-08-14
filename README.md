@@ -4,7 +4,6 @@
 
 ![Channel Analytics Overview](screenshots/screenshot_2.png)
 
-![Dashboard Metrics Studio](screenshots/dashboard_preview.png)
 
 
 
