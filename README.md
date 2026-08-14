@@ -25,11 +25,9 @@ Social_Media_Engagement_Dashboard/
 ├── dashboard/
 │   ├── static/
 │   │   ├── css/
-│   │   │   ├── style.css
 │   │   │   └── styles.css
 │   │   └── js/
-│   │       ├── app.js
-│   │       └── dashboard.js
+│   │       └── app.js
 │   ├── templates/
 │   │   └── index.html
 │   ├── app.py
@@ -47,13 +45,13 @@ Social_Media_Engagement_Dashboard/
 │   └── screenshot_4.png
 ├── src/
 │   ├── clean_youtube_data.py
-│   ├── youtube_api.py
 │   └── youtube_api_v3.py
 ├── .env (Ignored for Security)
 ├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
+
 
 ---
 
