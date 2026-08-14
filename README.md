@@ -6,6 +6,9 @@
 
 ![Channel Scores & Radar Diagram](screenshots/screenshot_3.png)
 
+![Top Performing Videos Grid](screenshots/screenshot_4.png)
+
+
 
 
 
