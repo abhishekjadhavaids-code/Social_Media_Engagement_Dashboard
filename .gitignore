@@ -1,0 +1,29 @@
+# Environment variables (API Keys)
+.env
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# System Generated Logs
+*.log
+brain/
+scratch/
+
+# Temporary data exports (keep data structure)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

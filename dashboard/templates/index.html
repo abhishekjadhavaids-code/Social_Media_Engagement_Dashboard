@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Engagement Analytics Studio (Power BI + Tableau)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body
+    class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-red-500 selection:text-white min-h-screen relative overflow-x-hidden transition-colors duration-300">
+
+    <!-- Background Canvas Particles -->
+    <canvas id="particle-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+    <!-- Glowing Background Ambient Lights -->
+    <div
+        class="fixed -top-40 -left-40 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse">
+    </div>
+    <div class="fixed top-1/3 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse"
+        style="animation-delay: 2s;"></div>
+    <div class="fixed -bottom-40 left-1/3 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse"
+        style="animation-delay: 4s;"></div>
+
+    <!-- Navigation Header -->
+    <header
+        class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80 px-6 py-4 transition-all">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-red-500/30 ring-1 ring-white/20">
+                    <i class="fa-brands fa-youtube text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1
+                        class="text-lg font-bold bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent leading-none">
+                        YouTube Analytics Studio <span
+                            class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 ml-1 font-semibold">Pro
+                            SaaS</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">Real-time API &bull; Power BI
+                        Dashboards &bull; Tableau Integration</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center gap-3">
+                <div
+                    class="hidden md:flex items-center gap-2 bg-slate-900/90 border border-slate-800/80 rounded-lg px-3 py-1.5 text-xs text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>YouTube API v3: <strong class="text-emerald-400 font-semibold">Connected</strong></span>
+                </div>
+
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleTheme()"
+                    class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition"
+                    title="Toggle Theme">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+
+                <!-- History Dropdown -->
+                <div class="relative" id="history-dropdown-wrapper">
+                    <button id="history-btn" onclick="toggleHistoryDropdown()"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-clock-rotate-left text-red-400"></i>
+                        <span class="hidden sm:inline">Recent Searches</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+                    <div id="history-menu"
+                        class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-slate-900/95 backdrop-blur-2xl border border-slate-800 shadow-2xl p-2 z-50 text-xs">
+                        <div
+                            class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1 border-b border-slate-800 mb-1 flex justify-between items-center">
+                            <span>Search History</span>
+                            <button onclick="clearSearchHistory()"
+                                class="text-slate-500 hover:text-red-400 text-[10px]">Clear</button>
+                        </div>
+                        <div id="history-list" class="max-h-48 overflow-y-auto space-y-1">
+                            <p class="text-slate-500 text-center py-3">No recent searches yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Center Quick Button -->
+                <button onclick="switchTab('export')"
+                    class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-medium text-xs shadow-md shadow-red-600/20 transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Exports</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-16 relative z-10">
+
+        <!-- Hero Section & Search Bar -->
+        <section class="mb-12 text-center relative">
+            <div
+                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-red-500/30 text-red-400 text-xs font-semibold mb-4 shadow-inner">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Automated YouTube Channel Intelligence & Dashboard Suite</span>
+            </div>
+
+            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+                Search Any Channel & Generate <span
+                    class="bg-gradient-to-r from-red-500 via-rose-400 to-amber-400 bg-clip-text text-transparent">Power
+                    BI & Tableau</span> Dashboards
+            </h2>
+            <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mt-3">
+                Paste a channel handle (<strong class="text-slate-200">@MrBeast</strong>), YouTube URL, or Channel ID.
+                Fetch real-time data, compute 5 channel scores, generate posting heatmaps, and export datasets.
+            </p>
+
+            <!-- Search Bar Form -->
+            <div class="mt-8 max-w-2xl mx-auto relative">
+                <form id="search-form" onsubmit="handleSearch(event)" class="relative flex items-center">
+                    <div class="relative w-full">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 text-lg">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <input type="text" id="channel-input" onkeyup="handleAutocomplete(event)" autocomplete="off"
+                            placeholder="Enter Channel Name, @Handle (e.g. @mkbhd), URL, or Channel ID..."
+                            class="w-full pl-12 pr-32 py-4 bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 rounded-2xl text-slate-100 placeholder-slate-500 text-sm font-medium transition shadow-2xl">
+                    </div>
+                    <button type="submit" id="search-submit-btn"
+                        class="absolute right-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-sm shadow-lg shadow-red-600/30 transition flex items-center gap-2">
+                        <span>Analyze</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Autocomplete Dropdown -->
+                <div id="autocomplete-dropdown"
+                    class="hidden absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 text-left text-xs">
+                    <!-- Dynamic suggestions list -->
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <span class="text-xs text-slate-400 font-medium mr-1">Featured Channels:</span>
+                    <button onclick="quickSearch('@MrBeast')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@MrBeast</button>
+                    <button onclick="quickSearch('@mkbhd')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@mkbhd</button>
+                    <button onclick="quickSearch('@veritasium')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@veritasium</button>
+                    <button onclick="quickSearch('@fireship')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@fireship</button>
+                    <button onclick="quickSearch('@TED')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@TED</button>
+                    <button onclick="quickSearch('@PewDiePie')"
+                        class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-red-500/50 text-xs text-slate-300 hover:text-white transition">@PewDiePie</button>
+                </div>
+            </div>
+
+            <!-- Statistics Section with Animated Counters -->
+            <div class="mt-10 max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
+                    <h4 class="text-2xl font-extrabold text-white counter" data-target="1284">1,284+</h4>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5 uppercase tracking-wider">Channels Analyzed
+                    </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
+                    <h4 class="text-2xl font-extrabold text-red-400 counter" data-target="84920">84,920+</h4>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5 uppercase tracking-wider">Videos Processed
+                    </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
+                    <h4 class="text-2xl font-extrabold text-amber-400">12.8B+</h4>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5 uppercase tracking-wider">Views Tracked</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
+                    <h4 class="text-2xl font-extrabold text-emerald-400">450M+</h4>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5 uppercase tracking-wider">Engagement Records
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Skeleton State -->
+        <div id="loading-spinner" class="hidden py-16 text-center">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-600/10 border border-red-500/30 text-red-500 text-3xl animate-bounce mb-4">
+                <i class="fa-brands fa-youtube"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Fetching Channel Data from YouTube Data API v3...</h3>
+            <p class="text-slate-400 text-sm mt-1 max-w-md mx-auto">Parsing metadata, calculating engagement rate
+                vectors, computing posting schedule heatmaps, and building Power BI / Tableau data schemas.</p>
+            <div class="mt-6 w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+                <div class="w-full h-full bg-gradient-to-r from-red-600 to-amber-400 animate-pulse"></div>
+            </div>
+        </div>
+
+        <!-- Initial Welcome State (Before any search) -->
+        <div id="welcome-state" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+                class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-red-500/30 transition group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Real-time Metrics & Scores</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Fetch subscriber growth, total views, top performing
+                    videos, and 5 core channel health scores (Performance, Engagement, Growth, Consistency, Quality).
+                </p>
+            </div>
+            <div
+                class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-yellow-500/30 transition group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">AI Posting Schedule & Strategy</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">7x24 engagement heatmap matrix pinpointing the highest
+                    performing upload day of week, hour of day, and optimal video duration brackets.</p>
+            </div>
+            <div
+                class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/30 transition group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Power BI & Tableau Ready</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Dedicated Power BI 4-page dashboard view and Tableau
+                    visual studio view, with instant multi-sheet Excel, CSV, and PDF report downloads.</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Analytics Content Container (Hidden until search) -->
+        <div id="analytics-content" class="hidden space-y-8">
+
+            <!-- Channel Hero Header Banner -->
+            <div class="relative rounded-3xl bg-slate-900/90 border border-slate-800 overflow-hidden shadow-2xl">
+                <div id="channel-banner-bg"
+                    class="h-44 sm:h-56 w-full bg-gradient-to-r from-red-950 via-slate-900 to-indigo-950 bg-cover bg-center relative">
+                    <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"></div>
+                </div>
+
+                <div
+                    class="p-6 sm:p-8 relative -mt-16 sm:-mt-20 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-end gap-5">
+                        <img id="channel-avatar" src="" alt="Avatar"
+                            class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-4 border-slate-950 shadow-2xl object-cover bg-slate-800">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 id="channel-title" class="text-2xl sm:text-3xl font-bold text-white">Channel Name
+                                </h2>
+                                <i class="fa-solid fa-circle-check text-red-500 text-lg"></i>
+                            </div>
+                            <p id="channel-handle" class="text-sm font-semibold text-red-400">@handle</p>
+                            <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 mt-2">
+                                <span><i class="fa-solid fa-earth-americas text-slate-500 mr-1"></i> <span
+                                        id="channel-country">Global</span></span>
+                                <span><i class="fa-solid fa-calendar-day text-slate-500 mr-1"></i> Created: <span
+                                        id="channel-created">2020</span></span>
+                                <a id="channel-yt-link" href="#" target="_blank"
+                                    class="text-red-400 hover:underline flex items-center gap-1">
+                                    <span>Open on YouTube</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Score Badge Card -->
+                    <div
+                        class="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-6 bg-slate-950/80 backdrop-blur-xl border border-slate-800 p-4 rounded-2xl shadow-xl">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Overall Health
+                                Score</p>
+                            <div class="flex items-baseline gap-1 mt-0.5">
+                                <span id="score-overall"
+                                    class="text-3xl sm:text-4xl font-extrabold text-white">92</span>
+                                <span class="text-xs font-semibold text-slate-400">/ 100</span>
+                            </div>
+                            <p id="score-label" class="text-xs font-semibold text-emerald-400 mt-0.5">Excellent
+                                Performance</p>
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-full border-4 border-red-500 flex items-center justify-center bg-red-500/10 text-red-400 text-xl font-bold">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <div class="flex items-center gap-2 overflow-x-auto border-b border-slate-800/80 pb-2 scrollbar-none">
+                <button onclick="switchTab('overview')" id="tab-btn-overview"
+                    class="tab-btn active px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Overview & Scores</span>
+                </button>
+                <button onclick="switchTab('strategy')" id="tab-btn-strategy"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>AI Posting & Content Strategy</span>
+                </button>
+                <button onclick="switchTab('powerbi')" id="tab-btn-powerbi"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-chart-simple text-amber-400"></i>
+                    <span>Power BI Workspace</span>
+                </button>
+                <button onclick="switchTab('tableau')" id="tab-btn-tableau"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-blue-400"></i>
+                    <span>Tableau Studio</span>
+                </button>
+                <button onclick="switchTab('history')" id="tab-btn-history"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                    <span>Historical Growth</span>
+                </button>
+                <button onclick="switchTab('videos')" id="tab-btn-videos"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Video Vault</span>
+                </button>
+                <button onclick="switchTab('export')" id="tab-btn-export"
+                    class="tab-btn px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-export text-rose-400"></i>
+                    <span>Export Center</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: OVERVIEW & SCORES -->
+            <div id="tab-content-overview" class="tab-pane space-y-8">
+                <!-- 4 Top KPI Stat Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Subscribers</span>
+                            <i class="fa-solid fa-users text-red-400"></i>
+                        </div>
+                        <h4 id="kpi-subs" class="text-2xl font-extrabold text-white">0</h4>
+                        <p class="text-[11px] text-slate-400 mt-1">Total Subscribers</p>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Total Views</span>
+                            <i class="fa-solid fa-eye text-blue-400"></i>
+                        </div>
+                        <h4 id="kpi-views" class="text-2xl font-extrabold text-white">0</h4>
+                        <p class="text-[11px] text-slate-400 mt-1">Channel Lifetime Views</p>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Avg Views / Video</span>
+                            <i class="fa-solid fa-play text-emerald-400"></i>
+                        </div>
+                        <h4 id="kpi-avg-views" class="text-2xl font-extrabold text-white">0</h4>
+                        <p class="text-[11px] text-slate-400 mt-1">Based on recent uploads</p>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Avg Engagement Rate</span>
+                            <i class="fa-solid fa-heart text-rose-400"></i>
+                        </div>
+                        <h4 id="kpi-engagement" class="text-2xl font-extrabold text-rose-400">0%</h4>
+                        <p class="text-[11px] text-slate-400 mt-1">(Likes + Comments) / Views</p>
+                    </div>
+                </div>
+
+                <!-- Score Breakdown Grid & Radar Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div
+                        class="lg:col-span-2 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl space-y-4">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-gauge-high text-red-500"></i>
+                            <span>5 Core Channel Performance Scores</span>
+                        </h3>
+
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-300">Channel Performance Score</span>
+                                    <span id="score-perf-val" class="text-red-400">85/100</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="bar-perf"
+                                        class="h-full bg-gradient-to-r from-red-600 to-rose-400 rounded-full"
+                                        style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-300">Engagement Score</span>
+                                    <span id="score-eng-val" class="text-yellow-400">78/100</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="bar-eng"
+                                        class="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full"
+                                        style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-300">Growth Score</span>
+                                    <span id="score-growth-val" class="text-emerald-400">90/100</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="bar-growth"
+                                        class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                                        style="width: 90%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-300">Consistency Score</span>
+                                    <span id="score-consist-val" class="text-blue-400">82/100</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="bar-consist"
+                                        class="h-full bg-gradient-to-r from-blue-500 to-indigo-400 rounded-full"
+                                        style="width: 82%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-300">Content Quality Score</span>
+                                    <span id="score-quality-val" class="text-purple-400">88/100</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="bar-quality"
+                                        class="h-full bg-gradient-to-r from-purple-500 to-fuchsia-400 rounded-full"
+                                        style="width: 88%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl flex flex-col items-center justify-center">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Health Radar Diagram
+                        </h3>
+                        <div class="w-full h-64 relative">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-rose-500"></i>
+                                <span>Recent Video Performance Timeline</span>
+                            </h3>
+                            <span class="text-xs text-slate-400">Views & Engagement</span>
+                        </div>
+                        <div class="h-72">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i>
+                            <span>Category Distribution</span>
+                        </h3>
+                        <div class="h-64 relative">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Performing Videos Grid -->
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-fire text-red-500"></i>
+                        <span>Top 5 Highest Performing Videos</span>
+                    </h3>
+                    <div id="top-videos-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: AI POSTING & STRATEGY -->
+            <div id="tab-content-strategy" class="tab-pane hidden space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div
+                        class="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-500/30 shadow-2xl">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Best Upload
+                            Day</span>
+                        <h3 id="rec-best-day" class="text-2xl font-extrabold text-white mt-1">Wednesday</h3>
+                        <p id="rec-best-day-desc" class="text-xs text-slate-400 mt-2">Highest historical audience
+                            engagement rate.</p>
+                    </div>
+                    <div
+                        class="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 shadow-2xl">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Best Upload
+                            Hour</span>
+                        <h3 id="rec-best-hour" class="text-2xl font-extrabold text-white mt-1">15:00 UTC</h3>
+                        <p id="rec-best-hour-desc" class="text-xs text-slate-400 mt-2">Peak viewer activity window.</p>
+                    </div>
+                    <div
+                        class="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-indigo-500/30 shadow-2xl">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Optimal
+                            Duration</span>
+                        <h3 id="rec-best-duration" class="text-2xl font-extrabold text-white mt-1">8 - 15 Mins</h3>
+                        <p id="rec-best-duration-desc" class="text-xs text-slate-400 mt-2">Yields max view retention and
+                            comments.</p>
+                    </div>
+                </div>
+
+                <!-- 7x24 Posting Heatmap -->
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-table-cells text-emerald-400"></i>
+                                <span>Weekly Upload Schedule Heatmap Matrix (Day vs Hour)</span>
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Darker green cells represent peak audience
+                                engagement windows.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div id="heatmap-grid" class="min-w-[700px] text-xs">
+                            <!-- Rendered via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Tips -->
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl space-y-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                        <span>AI-Powered Channel Improvement Strategy & Growth Tips</span>
+                    </h3>
+                    <div id="ai-tips-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: POWER BI WORKSPACE -->
+            <div id="tab-content-powerbi" class="tab-pane hidden space-y-6">
+                <div
+                    class="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl shadow-lg">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Power BI Dashboard Studio</h3>
+                            <p class="text-xs text-slate-400">Native 4-page layout simulator connected to live channel
+                                API parameters.</p>
+                        </div>
+                    </div>
+                    <a href="/api/export/powerbi" target="_blank"
+                        class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Export Power BI Dataset (.csv)</span>
+                    </a>
+                </div>
+
+                <!-- Power BI Page Selector Tabs -->
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+                    <button onclick="switchPbiPage('exec')" id="pbi-tab-exec"
+                        class="pbi-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">Page
+                        1: Executive Overview</button>
+                    <button onclick="switchPbiPage('eng')" id="pbi-tab-eng"
+                        class="pbi-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">Page
+                        2: Engagement Dashboard</button>
+                    <button onclick="switchPbiPage('perf')" id="pbi-tab-perf"
+                        class="pbi-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">Page
+                        3: Video Performance</button>
+                    <button onclick="switchPbiPage('growth')" id="pbi-tab-growth"
+                        class="pbi-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">Page
+                        4: Growth & Upload Trends</button>
+                </div>
+
+                <!-- Power BI Page 1 -->
+                <div id="pbi-page-exec" class="pbi-page space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Total Subscribers</p>
+                            <h4 id="pbi-exec-subs" class="text-xl font-extrabold text-white mt-1">0</h4>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Channel Total Views</p>
+                            <h4 id="pbi-exec-views" class="text-xl font-extrabold text-white mt-1">0</h4>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Overall Score</p>
+                            <h4 id="pbi-exec-score" class="text-xl font-extrabold text-amber-400 mt-1">0/100</h4>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Avg Engagement Rate</p>
+                            <h4 id="pbi-exec-eng" class="text-xl font-extrabold text-emerald-400 mt-1">0%</h4>
+                        </div>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-4">Executive KPI Visual Matrix</h4>
+                        <div class="h-64"><canvas id="pbiExecChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Power BI Page 2 -->
+                <div id="pbi-page-eng" class="pbi-page hidden space-y-6">
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-4">Likes & Comments Analysis Dashboard</h4>
+                        <div class="h-72"><canvas id="pbiEngChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Power BI Page 3 -->
+                <div id="pbi-page-perf" class="pbi-page hidden space-y-6">
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-4">Video Performance Comparison & Categories</h4>
+                        <div class="h-72"><canvas id="pbiPerfChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Power BI Page 4 -->
+                <div id="pbi-page-growth" class="pbi-page hidden space-y-6">
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-4">Upload Frequency & Channel Growth Patterns</h4>
+                        <div class="h-72"><canvas id="pbiGrowthChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: TABLEAU STUDIO -->
+            <div id="tab-content-tableau" class="tab-pane hidden space-y-6">
+                <div
+                    class="p-4 rounded-2xl bg-gradient-to-r from-blue-950/60 via-slate-900 to-slate-900 border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-blue-500 text-white font-black flex items-center justify-center text-xl shadow-lg">
+                            <i class="fa-solid fa-diagram-project"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Tableau Visual Studio</h3>
+                            <p class="text-xs text-slate-400">Interactive scatter plots, treemaps, and geographic visual
+                                studio.</p>
+                        </div>
+                    </div>
+                    <a href="/api/export/tableau" target="_blank"
+                        class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Export Tableau Dataset (.csv)</span>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-dot text-blue-400"></i>
+                            <span>Scatter Plot: Duration vs Views vs Engagement</span>
+                        </h4>
+                        <div class="h-72"><canvas id="tableauScatterChart"></canvas></div>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                        <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-column text-indigo-400"></i>
+                            <span>Content Category View Distribution (Treemap View)</span>
+                        </h4>
+                        <div class="h-72"><canvas id="tableauBarChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: HISTORICAL GROWTH -->
+            <div id="tab-content-history" class="tab-pane hidden space-y-6">
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl space-y-6">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                        <span>Historical Upload Frequency & Growth Patterns</span>
+                    </h3>
+                    <div class="h-72"><canvas id="historicalGrowthChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- TAB 6: VIDEO VAULT -->
+            <div id="tab-content-videos" class="tab-pane hidden space-y-6">
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-film text-red-500"></i>
+                                <span>Channel Video Vault & Analytics Table</span>
+                            </h3>
+                            <p class="text-xs text-slate-400">Detailed metric breakdown for fetched channel videos.</p>
+                        </div>
+                        <input type="text" id="video-search-input" onkeyup="filterVideoTable()"
+                            placeholder="Search video titles..."
+                            class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 w-full sm:w-64">
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead
+                                class="bg-slate-950 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Video</th>
+                                    <th class="p-3">Publish Date</th>
+                                    <th class="p-3">Duration</th>
+                                    <th class="p-3">Views</th>
+                                    <th class="p-3">Likes</th>
+                                    <th class="p-3">Comments</th>
+                                    <th class="p-3">Engagement Rate</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="video-table-body" class="divide-y divide-slate-800/60">
+                                <!-- Rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: EXPORT CENTER -->
+            <div id="tab-content-export" class="tab-pane hidden space-y-6">
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl">
+                    <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-file-export text-rose-500"></i>
+                        <span>Multi-Format Dataset & Report Exporter</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-6">Download channel analytics in pre-formatted file structures
+                        compatible with Power BI, Tableau, Excel, and PDF.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div
+                            class="p-6 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 transition flex flex-col justify-between">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mb-4">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Full Analytics Report (.xlsx)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Multi-sheet Excel workbook containing metadata,
+                                    video stats, category analytics, and posting schedule.</p>
+                            </div>
+                            <a href="/api/export/excel" target="_blank"
+                                class="mt-6 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center transition block">
+                                Download Excel Workbook
+                            </a>
+                        </div>
+
+                        <div
+                            class="p-6 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition flex flex-col justify-between">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mb-4">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Power BI Dataset (.csv)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Structured dataset with channel KPI metrics
+                                    appended for easy drag-and-drop Power BI desktop importing.</p>
+                            </div>
+                            <a href="/api/export/powerbi" target="_blank"
+                                class="mt-6 w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center transition block">
+                                Download Power BI CSV
+                            </a>
+                        </div>
+
+                        <div
+                            class="p-6 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition flex flex-col justify-between">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl mb-4">
+                                    <i class="fa-solid fa-diagram-project"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Tableau Dataset (.csv)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Optimized flat matrix designed for Tableau
+                                    Desktop & Prep scatter plots and treemaps.</p>
+                            </div>
+                            <a href="/api/export/tableau" target="_blank"
+                                class="mt-6 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs text-center transition block">
+                                Download Tableau CSV
+                            </a>
+                        </div>
+
+                        <div
+                            class="p-6 rounded-2xl bg-slate-950 border border-slate-800 hover:border-rose-500/50 transition flex flex-col justify-between">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-2xl mb-4">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Executive PDF Report</h4>
+                                <p class="text-xs text-slate-400 mt-1">Single-click printable executive summary report
+                                    with visual charts and AI strategy tips.</p>
+                            </div>
+                            <button onclick="downloadPdfReport()"
+                                class="mt-6 w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs text-center transition block">
+                                Generate PDF Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer
+        class="border-t border-slate-800/80 bg-slate-950/90 py-8 px-6 text-center text-xs text-slate-500 relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-brands fa-youtube text-red-500"></i>
+                <span class="text-slate-400 font-medium">YouTube Engagement Analytics Studio (Power BI + Tableau) &bull;
+                    2026</span>
+            </div>
+            <p>Powered by YouTube Data API v3 &bull; SaaS Analytics Edition</p>
+        </div>
+    </footer>
+
+    <!-- Tailwind JS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 950: '#060913' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
