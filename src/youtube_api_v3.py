@@ -9,9 +9,23 @@ from dotenv import load_dotenv
 
 # Load environment variables (.env file is ignored by git for security)
 load_dotenv()
-load_dotenv('c:/MLA/.env')
+if os.path.exists('c:/MLA/.env'):
+    load_dotenv('c:/MLA/.env')
 
-API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY_V3")
+def get_api_key(api_key=None):
+    if api_key:
+        return api_key
+    key = os.getenv("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY_V3")
+    if not key:
+        try:
+            import streamlit as st
+            if hasattr(st, "secrets"):
+                key = st.secrets.get("YOUTUBE_API_KEY") or st.secrets.get("YOUTUBE_API_KEY_V3")
+        except Exception:
+            pass
+    return key
+
+API_KEY = get_api_key()
 
 BASE_URL = "https://www.googleapis.com/youtube/v3"
 
@@ -86,7 +100,7 @@ def extract_channel_query(query_input):
 
 def resolve_channel_id(query_input, api_key=None):
     """Find YouTube Channel ID from handle, ID, URL, or name."""
-    key = api_key or API_KEY
+    key = get_api_key(api_key)
     clean_q, query_type = extract_channel_query(query_input)
     
     # 1. Try as Channel ID directly
@@ -123,7 +137,7 @@ def resolve_channel_id(query_input, api_key=None):
 
 def fetch_channel_videos(uploads_playlist_id, max_results=50, api_key=None):
     """Fetch video metadata and detailed stats for up to max_results videos in uploads playlist."""
-    key = api_key or API_KEY
+    key = get_api_key(api_key)
     
     url = f"{BASE_URL}/playlistItems"
     params = {
@@ -519,7 +533,7 @@ def process_channel_analytics(channel_raw, raw_videos):
 
 def analyze_youtube_channel(query, max_videos=50, api_key=None):
     """Full end-to-end pipeline: search channel, fetch videos, compute metrics & scores."""
-    key = api_key or API_KEY
+    key = get_api_key(api_key)
     ch_raw = resolve_channel_id(query, api_key=key)
     
     uploads_id = ch_raw.get("contentDetails", {}).get("relatedPlaylists", {}).get("uploads")

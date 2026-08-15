@@ -19,8 +19,6 @@ An **Advanced YouTube Engagement Analytics Platform** powered by **YouTube Data 
 
 ```text
 Social_Media_Engagement_Dashboard/
-├── .ipynb_checkpoints/
-│   └── 01_youtube_engagement_eda-checkpoint.ipynb
 ├── assets/
 ├── dashboard/
 │   ├── static/

@@ -14,6 +14,7 @@ __pycache__/
 # IDE & OS Files
 .vscode/
 .idea/
+.ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 
