@@ -255,7 +255,9 @@ if __name__ == "__main__":
         st.error("⚠️ **Incorrect Main File Path Detected**\n\nYou are running the Flask application (`dashboard/app.py`).\n\nPlease update your **Main file path** in Streamlit Cloud settings to `streamlit_app.py` (or `dashboard/streamlit_app.py`).")
     else:
         from waitress import serve
-        print("Starting YouTube Engagement Analytics Production WSGI Server on http://127.0.0.1:5000")
-        serve(app, host="0.0.0.0", port=5000)
+        port = int(os.environ.get("PORT", 5000))
+        print(f"Starting YouTube Engagement Analytics Production WSGI Server on port {port}")
+        serve(app, host="0.0.0.0", port=port)
+
 
 
