@@ -15,7 +15,11 @@ if SRC_DIR not in sys.path:
 
 from youtube_api_v3 import analyze_youtube_channel
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+
 
 # Memory Cache for recent analysis
 ANALYSIS_CACHE = {}
