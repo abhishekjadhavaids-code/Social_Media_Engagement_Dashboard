@@ -248,7 +248,14 @@ def export_excel():
     )
 
 if __name__ == "__main__":
-    from waitress import serve
-    print("Starting YouTube Engagement Analytics Production WSGI Server on http://127.0.0.1:5000")
-    serve(app, host="0.0.0.0", port=5000)
+    import sys
+    # Detect if executed via Streamlit CLI or Streamlit Cloud
+    if any("streamlit" in arg for arg in sys.argv) or "STREAMLIT_SERVER_PORT" in os.environ:
+        import streamlit as st
+        st.error("⚠️ **Incorrect Main File Path Detected**\n\nYou are running the Flask application (`dashboard/app.py`).\n\nPlease update your **Main file path** in Streamlit Cloud settings to `streamlit_app.py` (or `dashboard/streamlit_app.py`).")
+    else:
+        from waitress import serve
+        print("Starting YouTube Engagement Analytics Production WSGI Server on http://127.0.0.1:5000")
+        serve(app, host="0.0.0.0", port=5000)
+
 
